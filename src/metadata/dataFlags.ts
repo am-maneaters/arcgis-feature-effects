@@ -1,0 +1,98 @@
+export default [
+  {
+    row: 1,
+    FlagValue: 'a',
+    FlagShortDesc: '< 20',
+    FlagDesc: '0 to 19 employees',
+  },
+  {
+    row: 2,
+    FlagValue: 'b',
+    FlagShortDesc: '20 - 99',
+    FlagDesc: '20 to 99 employees',
+  },
+  {
+    row: 3,
+    FlagValue: 'c',
+    FlagShortDesc: '100 - 249',
+    FlagDesc: '100 to 249 employees',
+  },
+  {
+    row: 4,
+    FlagValue: 'e',
+    FlagShortDesc: '250 - 499',
+    FlagDesc: '250 to 499 employees',
+  },
+  {
+    row: 5,
+    FlagValue: 'f',
+    FlagShortDesc: '500 - 999',
+    FlagDesc: '500 to 999 employees',
+  },
+  {
+    row: 6,
+    FlagValue: 'g',
+    FlagShortDesc: '1k - 2,499',
+    FlagDesc: '1,000 to 2,499 employees',
+  },
+  {
+    row: 7,
+    FlagValue: 'h',
+    FlagShortDesc: '2.5k - 4,999',
+    FlagDesc: '2,500 to 4,999 employees',
+  },
+  {
+    row: 8,
+    FlagValue: 'i',
+    FlagShortDesc: '5k - 9,999',
+    FlagDesc: '5,000 to 9,999 employees',
+  },
+  {
+    row: 9,
+    FlagValue: 'j',
+    FlagShortDesc: '10k - 24,999',
+    FlagDesc: '10,000 to 24,999 employees',
+  },
+  {
+    row: 10,
+    FlagValue: 'k',
+    FlagShortDesc: '25k - 49,999',
+    FlagDesc: '25,000 to 49,999 employees',
+  },
+  {
+    row: 11,
+    FlagValue: 'l',
+    FlagShortDesc: '50k - 99,999',
+    FlagDesc: '50,000 to 99,999 employees',
+  },
+  {
+    row: 12,
+    FlagValue: 'm',
+    FlagShortDesc: '100k +',
+    FlagDesc: '100,000 employees or more',
+  },
+  {
+    row: 13,
+    FlagValue: 'D',
+    FlagShortDesc: 'Disclosure',
+    FlagDesc: 'Withheld due to disclosure',
+  },
+  {
+    row: 14,
+    FlagValue: 'N',
+    FlagShortDesc: 'NA/NC',
+    FlagDesc: 'Not available/comparable',
+  },
+  {
+    row: 15,
+    FlagValue: 'S',
+    FlagShortDesc: 'Below pub standards',
+    FlagDesc: "Doesn't meet publication standards",
+  },
+  {
+    row: 16,
+    FlagValue: 'z',
+    FlagShortDesc: '< half the unit shown',
+    FlagDesc: '< half the unit shown',
+  },
+];
