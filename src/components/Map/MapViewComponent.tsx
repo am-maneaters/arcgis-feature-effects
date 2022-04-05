@@ -16,8 +16,10 @@ export default function MapViewComponent({
   }, [view]);
 
   return (
-    <div ref={mapRef} className="h-full">
-      {children}
-    </div>
+    <MapContext.Provider value={view}>
+      <div ref={mapRef} className="h-full">
+        {children}
+      </div>
+    </MapContext.Provider>
   );
 }

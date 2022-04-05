@@ -1,105 +1,140 @@
 import * as React from 'react';
 
-import '@esri/calcite-components/dist/components/calcite-action';
-import '@esri/calcite-components/dist/components/calcite-action-bar';
-import '@esri/calcite-components/dist/components/calcite-radio-group';
-import '@esri/calcite-components/dist/components/calcite-radio-group-item';
-import '@esri/calcite-components/dist/components/calcite-shell';
-import '@esri/calcite-components/dist/components/calcite-shell-panel';
-import '@esri/calcite-components/dist/components/calcite-action-group';
-
-import {
-  CalciteAction,
-  CalciteActionBar,
-  CalciteShell,
-} from '@esri/calcite-components-react';
+import { CalciteShell } from '@esri/calcite-components-react';
 import ScaleBar from '@arcgis/core/widgets/ScaleBar';
+
+import TileLayer from '@arcgis/core/layers/TileLayer';
+import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
+import Graphic from '@arcgis/core/Graphic';
+import Circle from '@arcgis/core/geometry/Circle';
+import Point from '@arcgis/core/geometry/Point';
+import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import useMap from './hooks/layerHooks';
 import MapViewComponent, { MapWidget } from './components/Map';
-import { MapContext } from './components/Map/MapViewComponent';
-import ControlBar from './components/ControlBar/ControlBar';
-import DashboardView from './views/DashboardView';
-import LegendView from './views/LegendView';
-import GeoTypeSelect from './components/GeoTypeSelect/GeoTypeSelect';
+
+import config from './config';
+import Paper from './components/Paper';
 
 interface Props {
   example?: string;
 }
 
-export default function App({ example }: Props) {
-  const [clicked, setClicked] = React.useState(false);
+function moveGraphic(graphic: Graphic, dx: number, dy: number) {
+  const clonedGeometry = graphic.geometry.clone();
+  const [rings] = [...graphic.geometry.rings];
+  const t = rings.map(([x, y]) => {
+    return [x + dx, y + dy];
+  });
+  clonedGeometry.rings = t;
+  graphic.geometry = clonedGeometry;
+}
 
+export default function App({ example }: Props) {
+  const ref = React.useRef(0);
   const { mapView, useLayer, useMapEvent, useWidget } = useMap(
     {
       basemap: 'gray-vector',
     },
     {
-      extent: {
-        spatialReference: { wkid: 102100 },
-        xmax: -6576030,
-        xmin: -15029354,
-        ymax: 7498969,
-        ymin: 1638389,
-      },
+      extent: config.initialExtent,
     }
   );
 
-  useLayer('stateLayer', {
-    url: 'https://services1.arcgis.com/99lidPhWCzftIe9K/arcgis/rest/services/USStates/FeatureServer/0',
+  const worldLayer = useLayer(
+    'worldLayer',
+    new TileLayer({
+      portalItem: {
+        id: '10df2279f9684e4a9f6a7f08febac2a9', // world imagery
+      },
+    })
+  );
+
+  worldLayer.effect = 'blur(8px) brightness(1.2) grayscale(0.8)';
+  worldLayer.sublayers?.forEach((layer) => {
+    layer.popupEnabled = false;
   });
 
-  useMapEvent('double-click', [], (event) => {
-    event.stopPropagation();
+  const graphicsLayer = useLayer('graphicsLayer', new GraphicsLayer({}));
+  // Create a polygon geometry
+  const polygon = new Circle({
+    center: new Point({ x: -64.78, y: 32.3 }),
+    numberOfPoints: 100,
+    radius: 200,
+    radiusUnit: 'kilometers',
   });
-  useMapEvent('double-click', ['Control'], (event) => {
-    event.stopPropagation();
+
+  // Create a symbol for rendering the graphic
+  const fillSymbol = new SimpleFillSymbol({
+    color: 'blue',
+    style: 'solid',
+    outline: {
+      width: 3,
+      color: 'red',
+    },
   });
+
+  // Add the geometry and symbol to a new graphic
+  const polygonGraphic = new Graphic({
+    geometry: polygon,
+    symbol: fillSymbol,
+  });
+  // Add the geometry and symbol to a new graphic
+  const polygonGraphic2 = new Graphic({
+    geometry: polygon,
+    symbol: fillSymbol,
+  });
+  graphicsLayer.graphics = [polygonGraphic, polygonGraphic2];
+
+  const position = { x: 0, y: 0 };
+  let velocity = { x: 0, y: 0.01 };
+  const speed = 0.01;
+
+  const keyPressed = { w: false, a: false, s: false, d: false };
+  mapView.on('key-down', (e) => {
+    keyPressed[e.key] = true;
+    e.stopPropagation();
+  });
+
+  mapView.on('key-up', (e) => {
+    keyPressed[e.key] = false;
+    e.stopPropagation();
+  });
+
+  const animate = () => {
+    console.log();
+    ref.current = 5;
+    moveGraphic(polygonGraphic, velocity.x, velocity.y);
+    if (keyPressed.a) {
+      velocity.x -= speed;
+    } else if (keyPressed.d) {
+      velocity.x += speed;
+    }
+    if (keyPressed.w) {
+      velocity.y += speed;
+    } else if (keyPressed.s) {
+      velocity.y -= speed;
+    }
+    velocity = { x: velocity.x * 0.9, y: velocity.y * 0.9 };
+    return requestAnimationFrame(animate);
+  };
+
+  React.useEffect(() => {
+    requestAnimationFrame(animate);
+  }, []);
 
   useWidget(() => new ScaleBar(), { position: 'top-left' });
 
   return (
-    <MapContext.Provider value={mapView}>
-      <CalciteShell>
-        {/*  Header Bar */}
-        <h1 className="text-xl font-bold pl-4 pt-2" slot="header">
-          Census Bureau Business Builder
-        </h1>
-        <ControlBar />
-        <MapViewComponent view={mapView} key="mapview">
-          <MapWidget position="bottom-right" key="legendview">
-            <LegendView test={clicked} />
-          </MapWidget>
-          <MapWidget position="bottom-left" key="dashboardview">
-            <DashboardView />
-          </MapWidget>
-          <MapWidget position="top-right" key="actionview">
-            <CalciteActionBar
-              className="pointer-events-auto"
-              position="end"
-              scale="s"
-            >
-              {[
-                ['download', 'Download'],
-                ['layers-reference', 'Reference Layers'],
-                ['basemap', 'Basemap'],
-                ['transparency', 'Transparency'],
-                ['file-report', 'Create Report'],
-              ].map(([icon, name]) => (
-                <CalciteAction
-                  icon={icon}
-                  text={name}
-                  scale="s"
-                  onClick={() => setClicked((c) => !c)}
-                  key={name}
-                />
-              ))}
-            </CalciteActionBar>
-          </MapWidget>
-          <MapWidget position="top-left" key="geolevelview">
-            <GeoTypeSelect />
-          </MapWidget>
-        </MapViewComponent>
-      </CalciteShell>
-    </MapContext.Provider>
+    <CalciteShell>
+      {/*  Header Bar */}
+      <h1 className="text-xl font-bold pl-4 pt-2" slot="header">
+        ArcGIS Feature Effect
+      </h1>
+      <MapViewComponent view={mapView} key="mapview">
+        <MapWidget position="bottom-right" key="legendview">
+          <Paper>{ref.current}</Paper>
+        </MapWidget>
+      </MapViewComponent>
+    </CalciteShell>
   );
 }

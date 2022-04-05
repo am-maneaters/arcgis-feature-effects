@@ -4,6 +4,7 @@ import Map from '@arcgis/core/Map';
 import React, { useCallback, useEffect, useState } from 'react';
 import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import * as watchUtils from '@arcgis/core/core/watchUtils';
+import Layer from '@arcgis/core/layers/Layer';
 
 /**
  * Constructs a map and a mapview and returns various map hooks
@@ -15,9 +16,6 @@ export default function useMap(
   mapProps: __esri.MapProperties,
   mapViewProps: Exclude<__esri.MapViewProperties, 'map' | 'container'>
 ) {
-  useEffect(() => {
-    console.log('hello');
-  }, []);
   const [mapView] = useState(() => {
     const map = new Map(mapProps);
 
@@ -28,17 +26,18 @@ export default function useMap(
     return view;
   });
 
-  const useLayer = useCallback(
-    (id: string, layerProps: __esri.FeatureLayerProperties) => {
-      let layer = mapView.map.findLayerById(id) as FeatureLayer;
-      if (!layer) {
-        layer = new FeatureLayer({ ...layerProps, id });
-        mapView.map.add(layer);
-      }
-      return layer;
-    },
-    [mapView.map]
-  );
+  function useLayer<LayerType extends __esri.Layer>(
+    id: string,
+    initLayer: LayerType
+  ): LayerType {
+    let layer = mapView.map.findLayerById(id) as LayerType;
+    if (!layer) {
+      layer = initLayer;
+      layer.id = id;
+      mapView.map.add(layer);
+    }
+    return layer;
+  }
 
   /**
    * Hook wrapper around {@link MapView.on}
